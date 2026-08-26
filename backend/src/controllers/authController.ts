@@ -1,0 +1,12 @@
+import type { Request, Response } from 'express'
+import bcrypt from 'bcryptjs'
+import jwt from 'jsonwebtoken'
+import { z } from 'zod'
+import { config } from '../config.js'
+import { prisma } from '../lib/prisma.js'
+import { sendError } from '../utils/errors.js'
+const loginSchema = z.object({ email: z.string().email(), password: z.string().min(1) })
+export async function login(request: Request, response: Response) { const { email, password } = loginSchema.parse(request.body); const user = await prisma.user.findUnique({ where: { email } }); if (!user || !user.isActive || !(await bcrypt.compare(password, user.passwordHash))) return sendError(response, 401, 'INVALID_CREDENTIALS', 'Email or password is incorrect.'); const token = jwt.sign({ sub: user.id, role: user.role, chclId: user.chclId }, config.JWT_SECRET, { expiresIn: '8h' }); return response.json({ token, user: { id: user.id, name: user.name, email: user.email, phone: user.phone, role: user.role } }) }
+
+const profileSchema = z.object({ name: z.string().min(2).max(80).optional(), email: z.string().email().refine((value) => value.toLowerCase().endsWith('@farmfleet.in'), 'Login email must use the @farmfleet.in domain.').optional(), phone: z.string().min(7).max(20).optional(), currentPassword: z.string().optional(), newPassword: z.string().min(8).max(100).optional() }).refine((input) => !input.newPassword || input.currentPassword, { message: 'Current password is required to set a new password.', path: ['currentPassword'] })
+export async function updateProfile(request: Request, response: Response) { const input = profileSchema.parse(request.body); const existing = await prisma.user.findUnique({ where: { id: request.user!.id } }); if (!existing) return sendError(response, 404, 'NOT_FOUND', 'User profile not found.'); if (input.newPassword && !(await bcrypt.compare(input.currentPassword!, existing.passwordHash))) return sendError(response, 400, 'INVALID_PASSWORD', 'Current password is incorrect.'); const passwordHash = input.newPassword ? await bcrypt.hash(input.newPassword, 10) : undefined; try { const user = await prisma.user.update({ where: { id: existing.id }, data: { name: input.name, email: input.email, phone: input.phone, passwordHash } }); return response.json({ user: { id: user.id, name: user.name, email: user.email, phone: user.phone, role: user.role } }) } catch (error: any) { if (error?.code === 'P2002') return sendError(response, 409, 'EMAIL_IN_USE', 'That email address is already in use.'); throw error } }

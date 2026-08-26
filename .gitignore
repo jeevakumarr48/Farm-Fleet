@@ -1,0 +1,9 @@
+node_modules/
+frontend/dist/
+backend/dist/
+backend/tmp/
+frontend/.env*
+backend/.env
+*.log
+.vercel/
+*.tsbuildinfo

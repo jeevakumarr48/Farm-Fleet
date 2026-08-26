@@ -1,0 +1,7 @@
+import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react'
+export function Button({ children, variant = 'primary', className = '', ...props }: ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' | 'secondary' | 'ghost' | 'danger' }) { return <button className={`button button-${variant} ${className}`} {...props}>{children}</button> }
+export function Field({ label, hint, children }: { label: string; hint?: string; children: ReactNode }) { return <label className="field"><span className="field-label">{label}</span>{children}{hint && <span className="field-hint">{hint}</span>}</label> }
+export function Input(props: InputHTMLAttributes<HTMLInputElement>) { return <input className="input" {...props} /> }
+export function Select(props: SelectHTMLAttributes<HTMLSelectElement>) { return <select className="input" {...props} /> }
+export function Panel({ title, action, children, className = '' }: { title?: string; action?: ReactNode; children: ReactNode; className?: string }) { return <section className={`panel ${className}`}>{(title || action) && <div className="panel-head">{title && <h2>{title}</h2>}{action}</div>}{children}</section> }
+export function EmptyState({ title, description, action }: { title: string; description: string; action?: ReactNode }) { return <div className="empty-state"><div className="empty-mark">—</div><h3>{title}</h3><p>{description}</p>{action}</div> }

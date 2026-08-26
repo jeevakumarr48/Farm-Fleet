@@ -1,0 +1,159 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  CHC_MANAGER
+  OPERATOR
+  FARMER
+}
+
+enum MachineStatus {
+  ACTIVE
+  MAINTENANCE
+  BROKEN
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum VoiceStatus {
+  PROCESSING
+  CONFIRMED
+  REJECTED
+}
+
+enum ProposalStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum ProposalReason {
+  BREAKDOWN
+  DELAY
+  CANCELLATION
+  URGENT_JOB
+}
+
+model User {
+  id                    String    @id @default(cuid())
+  name                  String
+  email                 String    @unique
+  phone                 String
+  role                  Role
+  passwordHash          String
+  chclId                String?
+  isActive              Boolean   @default(true)
+  machines              Machine[] @relation("MachineOperator")
+  bookingsAsFarmer      Booking[] @relation("BookingFarmer")
+  bookingsAsOperator    Booking[] @relation("BookingOperator")
+  farmerRequests        FarmerRequest[]
+  durationSamples       JobDurationTrainingSample[]
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Machine {
+  id          String        @id @default(cuid())
+  type        String
+  name        String
+  status      MachineStatus @default(ACTIVE)
+  chclId      String
+  operatorId  String?
+  operator    User?         @relation("MachineOperator", fields: [operatorId], references: [id])
+  bookings    Booking[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+}
+
+model Booking {
+  id                       String          @id @default(cuid())
+  farmerId                 String
+  machineId                String
+  operatorId               String?
+  areaInAcres              Float
+  cropType                 String?
+  location                 Json
+  scheduledStart           DateTime
+  scheduledEnd             DateTime
+  predictedDurationMinutes Int?
+  actualStart              DateTime?
+  actualEnd                DateTime?
+  status                   BookingStatus   @default(PENDING)
+  specialInstructions      String?
+  farmer                   User            @relation("BookingFarmer", fields: [farmerId], references: [id])
+  machine                  Machine         @relation(fields: [machineId], references: [id])
+  operator                 User?           @relation("BookingOperator", fields: [operatorId], references: [id])
+  voiceRecordings          VoiceRecording[]
+  farmerRequest             FarmerRequest?
+  durationSamples           JobDurationTrainingSample[]
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+
+  @@index([scheduledStart])
+  @@index([status])
+  @@index([machineId, scheduledStart])
+}
+
+model VoiceRecording {
+  id            String      @id @default(cuid())
+  bookingId     String?
+  audioUrl      String
+  transcript    String?
+  extractedData Json?
+  status        VoiceStatus @default(PROCESSING)
+  booking       Booking?    @relation(fields: [bookingId], references: [id])
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model FarmerRequest {
+  id                   String        @id @default(cuid())
+  farmerId             String
+  requestedMachineType String
+  areaInAcres          Float
+  preferredDate        DateTime
+  location             Json
+  status               BookingStatus @default(PENDING)
+  farmer               User          @relation(fields: [farmerId], references: [id])
+  bookingId            String?       @unique
+  booking              Booking?      @relation(fields: [bookingId], references: [id])
+  createdAt            DateTime      @default(now())
+}
+
+model JobDurationTrainingSample {
+  id                    String   @id @default(cuid())
+  machineType           String
+  areaInAcres           Float
+  cropType              String?
+  location              Json?
+  season                String?
+  actualDurationMinutes Int
+  bookingId             String?
+  operatorId            String?
+  booking               Booking? @relation(fields: [bookingId], references: [id])
+  operator              User?    @relation(fields: [operatorId], references: [id])
+  createdAt             DateTime @default(now())
+}
+
+model ScheduleChangeProposal {
+  id              String         @id @default(cuid())
+  reason          ProposalReason
+  proposedChanges Json
+  status          ProposalStatus  @default(PENDING)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}

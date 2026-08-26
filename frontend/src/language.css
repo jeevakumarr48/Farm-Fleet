@@ -1,0 +1,5 @@
+:lang(ta) { font-family: 'Noto Sans Tamil', 'IBM Plex Sans', sans-serif; }
+.language-select { min-height: 31px; padding: 0 7px; color: #526057; background: #fbf9f3; border: 1px solid #c9c6b8; border-radius: 4px; font-size: 10px; cursor: pointer; }
+.login-language { display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-bottom: 31px; color: #7d887f; font-size: 10px; }
+.login-language select { min-height: 30px; padding: 0 8px; color: #4e5e53; background: #fbf9f3; border: 1px solid #c9c6b8; border-radius: 4px; font-size: 10px; }
+@media (max-width: 760px) { .language-select { display: none; } }

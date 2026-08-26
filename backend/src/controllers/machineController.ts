@@ -1,0 +1,8 @@
+import type { Request, Response } from 'express'
+import { prisma } from '../lib/prisma.js'
+import { machineSchema } from '../utils/validation.js'
+import { sendError } from '../utils/errors.js'
+import { dynamicRescheduler } from '../services/ai/dynamicRescheduler.js'
+export async function getMachines(request: Request, response: Response) { const machines = await prisma.machine.findMany({ where: request.user?.chclId ? { chclId: request.user.chclId } : undefined, include: { operator: { select: { name: true } } }, orderBy: { type: 'asc' } }); response.json(machines.map((machine) => ({ ...machine, operator: undefined, operatorName: machine.operator?.name }))) }
+export async function postMachine(request: Request, response: Response) { const input = machineSchema.parse(request.body); const machine = await prisma.machine.create({ data: { type: input.type.toUpperCase(), name: input.name, status: input.status || 'ACTIVE', chclId: input.chclId || request.user!.chclId || '', operatorId: input.operatorId || undefined } }); response.status(201).json(machine) }
+export async function patchMachine(request: Request, response: Response) { const input = machineSchema.partial().parse(request.body); const existing = await prisma.machine.findUnique({ where: { id: String(request.params.id) } }); if (!existing || (request.user?.chclId && existing.chclId !== request.user.chclId)) return sendError(response, 404, 'MACHINE_NOT_FOUND', 'Machine not found.'); const machine = await prisma.machine.update({ where: { id: existing.id }, data: input }); if (input.status === 'BROKEN') void dynamicRescheduler.propose('BREAKDOWN', { machineId: machine.id, date: new Date().toISOString().slice(0, 10) }).catch(() => undefined); response.json(machine) }
