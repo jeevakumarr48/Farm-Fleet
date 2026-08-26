@@ -7,3 +7,5 @@ backend/.env
 *.log
 .vercel/
 *.tsbuildinfo
+
+.vercel
