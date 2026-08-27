@@ -18,7 +18,7 @@ The frontend deliberately falls back to synthetic sample data when the API is un
 
 ## Vercel deployment
 
-Create one Vercel project with the project root set to `farmfleet`. The included `vercel.json` builds `frontend/dist` and routes `/api/*` to the Express catch-all function in `api/[...path].ts`.
+Create one Vercel project with the project root set to `farmfleet`. The included `vercel.json` builds the frontend and routes `/api/*` to the Express backend service.
 
 Set these Vercel environment variables for Production, Preview, and Development:
 
@@ -31,6 +31,8 @@ MAPS_API_KEY=
 ```
 
 Use a hosted PostgreSQL provider such as Neon, Supabase, or Railway. Run `npm run db:migrate` and `npm run db:seed` against that database before testing the deployed API. No `VITE_API_URL` is needed on Vercel because the frontend uses the same-domain `/api` route.
+
+If no `DATABASE_URL` is present, the API starts in prototype mode: health and demo login work, data endpoints return a clear `DATABASE_NOT_CONFIGURED` response, and the frontend uses synthetic sample data instead of crashing.
 
 ## Workspace
 
