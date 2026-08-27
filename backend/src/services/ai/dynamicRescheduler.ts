@@ -1,5 +1,6 @@
 import { prisma } from '../../lib/prisma.js'
 import { AppError } from '../../utils/errors.js'
+import { notifyBookingEvent } from '../notificationService.js'
 
 export type DisruptionReason = 'BREAKDOWN' | 'DELAY' | 'CANCELLATION' | 'URGENT_JOB'
 export interface RescheduleScope { machineId?: string; date?: string; bookingId?: string }
@@ -15,6 +16,6 @@ export class DynamicRescheduler {
     const proposal = await prisma.scheduleChangeProposal.create({ data: { reason, proposedChanges: changes } })
     return { proposalId: proposal.id, proposedChanges: changes }
   }
-  async accept(proposalId: string) { const proposal = await prisma.scheduleChangeProposal.findUnique({ where: { id: proposalId } }); if (!proposal || proposal.status !== 'PENDING') throw new AppError(409, 'PROPOSAL_NOT_PENDING', 'Schedule proposal is not pending.'); const changes = proposal.proposedChanges as Array<{ bookingId: string; newStart: string; newEnd: string; assignedMachineId?: string; assignedOperatorId?: string | null }>; await prisma.$transaction([...changes.map((change) => prisma.booking.update({ where: { id: change.bookingId }, data: { scheduledStart: new Date(change.newStart), scheduledEnd: new Date(change.newEnd), machineId: change.assignedMachineId, operatorId: change.assignedOperatorId } })), prisma.scheduleChangeProposal.update({ where: { id: proposalId }, data: { status: 'ACCEPTED' } })]); return { proposalId, status: 'ACCEPTED' } }
+  async accept(proposalId: string) { const proposal = await prisma.scheduleChangeProposal.findUnique({ where: { id: proposalId } }); if (!proposal || proposal.status !== 'PENDING') throw new AppError(409, 'PROPOSAL_NOT_PENDING', 'Schedule proposal is not pending.'); const changes = proposal.proposedChanges as Array<{ bookingId: string; newStart: string; newEnd: string; assignedMachineId?: string; assignedOperatorId?: string | null }>; await prisma.$transaction([...changes.map((change) => prisma.booking.update({ where: { id: change.bookingId }, data: { scheduledStart: new Date(change.newStart), scheduledEnd: new Date(change.newEnd), machineId: change.assignedMachineId, operatorId: change.assignedOperatorId } })), prisma.scheduleChangeProposal.update({ where: { id: proposalId }, data: { status: 'ACCEPTED' } })]); const affected = await prisma.booking.findMany({ where: { id: { in: changes.map((change) => change.bookingId) } }, select: { id: true, farmerId: true } }); await Promise.all(affected.map((booking) => notifyBookingEvent(booking, 'JOB_RESCHEDULED', 'Job rescheduled', 'Your booking has been rescheduled due to a schedule change.'))); return { proposalId, status: 'ACCEPTED' } }
 }
 export const dynamicRescheduler = new DynamicRescheduler()

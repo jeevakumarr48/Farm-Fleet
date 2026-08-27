@@ -1,4 +1,4 @@
-import type { Booking, FarmerRequest, Machine, OperatorTask, ScheduleProposal, User } from './types'
+import type { Booking, FarmerNotification, FarmerRequest, Machine, OperatorTask, ScheduleProposal, User } from './types'
 
 export const demoUser: User = { id: 'usr-manager', name: 'Anita Rao', email: 'manager@farmfleet.in', phone: '+91 98765 40010', role: 'CHC_MANAGER' }
 export const demoUsers: User[] = [
@@ -22,6 +22,11 @@ export const demoBookings: Booking[] = [
 export const demoRequests: FarmerRequest[] = [
   { id: 'REQ-208', machineType: 'tractor', areaInAcres: 5, preferredDate: '2025-01-18', location: { village: 'Bairiya', field: 'Plot 19', landmark: 'Old banyan tree' }, status: 'APPROVED', createdAt: '2025-01-13' },
   { id: 'REQ-207', machineType: 'seeder', areaInAcres: 2.5, preferredDate: '2025-01-20', location: { village: 'Bairiya', field: 'Plot 4C' }, status: 'PENDING', createdAt: '2025-01-12' },
+]
+export const demoNotifications: FarmerNotification[] = [
+  { id: 'n-1', type: 'JOB_ASSIGNED', title: 'Operator assigned', message: 'Ravi Kumar is assigned to your tractor job on 18 Jan.', relatedRequestId: 'REQ-208', read: false, createdAt: '2025-01-15T10:30:00' },
+  { id: 'n-2', type: 'REQUEST_APPROVED', title: 'Request approved', message: 'Your tractor request for Plot 19 has been approved.', relatedRequestId: 'REQ-208', read: false, createdAt: '2025-01-14T16:20:00' },
+  { id: 'n-3', type: 'JOB_COMPLETED', title: 'Job completed', message: 'Your last field job was completed successfully.', relatedBookingId: 'BK-1048', read: true, createdAt: '2025-01-13T14:00:00' },
 ]
 export const demoTasks: OperatorTask[] = [demoBookings[0], demoBookings[2]]
 export const demoProposal: ScheduleProposal = { id: 'PROP-17', reason: 'the rotavator needs a belt inspection before the afternoon run', changes: [{ bookingId: 'BK-1051', farmerName: 'Kavita Sharma', oldStart: '13:00', oldEnd: '15:00', newStart: '15:30', newEnd: '17:30' }] }

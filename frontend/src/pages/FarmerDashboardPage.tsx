@@ -1,0 +1,18 @@
+import { ArrowUpRight, Bell, CalendarDays, CheckCircle2, ChevronRight, ClipboardList, MapPin, Plus, Tractor } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { getFarmerBookings, getFarmerNotifications, getFarmerRequests } from '../services/api'
+import { demoNotifications, demoRequests } from '../data'
+import { useAuth } from '../contexts/AuthContext'
+import { Panel } from '../components/Ui'
+import { StatusBadge } from '../components/StatusBadge'
+
+export function FarmerDashboardPage() {
+  const { user } = useAuth()
+  const { data: requests = demoRequests } = useQuery({ queryKey: ['farmer-requests'], queryFn: () => getFarmerRequests() })
+  const { data: bookings = [] } = useQuery({ queryKey: ['farmer-bookings'], queryFn: () => getFarmerBookings() })
+  const { data: notifications = demoNotifications } = useQuery({ queryKey: ['farmer-notifications'], queryFn: () => getFarmerNotifications(true) })
+  const active = requests.filter((item) => ['PENDING', 'APPROVED', 'ASSIGNED', 'IN_PROGRESS'].includes(item.status)).length
+  const completed = [...requests, ...bookings].filter((item) => item.status === 'COMPLETED').length
+  return <div className="dashboard farmer-home"><div className="page-intro"><div><span className="eyebrow">MY FARM / OVERVIEW</span><h1>Vanakkam, {user?.name.split(' ')[0]}.</h1><p>Keep track of your machines and field work in one place.</p></div><Link to="/farmer/requests/new" className="button button-primary"><Plus size={17} />New request</Link></div><div className="farmer-summary"><div><ClipboardList size={20} /><strong>{active}</strong><span>Active requests</span></div><div><CalendarDays size={20} /><strong>{bookings.filter((item) => ['APPROVED', 'ASSIGNED', 'IN_PROGRESS'].includes(item.status)).length}</strong><span>Approved bookings</span></div><div><CheckCircle2 size={20} /><strong>{completed}</strong><span>Completed jobs</span></div></div>{notifications.length > 0 && <div className="farmer-alert"><Bell size={18} /><div><strong>{notifications[0].title}</strong><span>{notifications[0].message}</span></div><Link to="/farmer/notifications">See notifications <ArrowUpRight size={14} /></Link></div>}<div className="farmer-home-grid"><Panel title="Recent activity" action={<Link to="/farmer/requests" className="panel-link">View all <ChevronRight size={15} /></Link>}><div className="farmer-activity">{requests.slice(0, 4).map((request) => <Link to={`/farmer/requests/${request.id}`} className="activity-row" key={request.id}><span className="activity-icon"><Tractor size={18} /></span><div><strong>{request.machineType[0].toUpperCase() + request.machineType.slice(1)} · {request.areaInAcres} acres</strong><span><MapPin size={13} />{request.location.village}, {request.location.field}</span></div><div className="activity-end"><StatusBadge status={request.status} /><small>{new Date(request.preferredDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</small></div><ChevronRight size={16} /></Link>)}</div></Panel><div className="farmer-side-actions"><Link to="/farmer/requests/new" className="farmer-action-card"><span className="action-plus"><Plus size={19} /></span><div><strong>Request a machine</strong><small>Tell your CHC what your field needs.</small></div><ArrowUpRight size={17} /></Link><Link to="/farmer/bookings" className="farmer-action-card dark"><span className="action-plus"><CalendarDays size={19} /></span><div><strong>View my bookings</strong><small>See time, operator, and field details.</small></div><ArrowUpRight size={17} /></Link></div></div></div>
+}

@@ -1,4 +1,4 @@
-import { Bell, CalendarDays, ChevronDown, ClipboardList, Factory, LayoutDashboard, LogOut, Menu, Settings, Tractor, Users, X } from 'lucide-react'
+import { Bell, CalendarDays, ChevronDown, ClipboardList, Factory, HelpCircle, LayoutDashboard, LogOut, Menu, Settings, Tractor, Users, X } from 'lucide-react'
 import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
@@ -12,15 +12,19 @@ const links: { to: string; key: NavKey; icon: typeof LayoutDashboard; roles: Rol
   { to: '/bookings', key: 'bookings', icon: ClipboardList, roles: ['ADMIN', 'CHC_MANAGER'] },
   { to: '/schedule', key: 'schedule', icon: CalendarDays, roles: ['ADMIN', 'CHC_MANAGER'] },
   { to: '/machines', key: 'machines', icon: Tractor, roles: ['ADMIN', 'CHC_MANAGER'] },
-  { to: '/requests', key: 'requests', icon: ClipboardList, roles: ['FARMER'] },
+  { to: '/farmer/dashboard', key: 'overview', icon: LayoutDashboard, roles: ['FARMER'] },
+  { to: '/farmer/requests', key: 'requests', icon: ClipboardList, roles: ['FARMER'] },
+  { to: '/farmer/bookings', key: 'bookings', icon: CalendarDays, roles: ['FARMER'] },
+  { to: '/farmer/profile', key: 'profile', icon: Settings, roles: ['FARMER'] },
+  { to: '/farmer/help', key: 'help', icon: HelpCircle, roles: ['FARMER'] },
   { to: '/tasks', key: 'tasks', icon: Tractor, roles: ['OPERATOR'] },
   { to: '/users', key: 'people', icon: Users, roles: ['ADMIN', 'CHC_MANAGER'] },
-  { to: '/settings', key: 'profile', icon: Settings, roles: ['ADMIN', 'CHC_MANAGER', 'OPERATOR', 'FARMER'] },
+  { to: '/settings', key: 'profile', icon: Settings, roles: ['ADMIN', 'CHC_MANAGER', 'OPERATOR'] },
 ]
 export function AppShell() {
   const { user, signOut, switchRole } = useAuth(); const { language, setLanguage, t, tr } = useLanguage(); const location = useLocation(); const [open, setOpen] = useState(false)
   if (!user) return <Navigate to="/login" replace />
-  const current = t.nav[links.find((link) => link.to === location.pathname)?.key || 'overview']
+  const current = t.nav[links.find((link) => link.to === location.pathname || (link.to !== '/' && location.pathname.startsWith(link.to)))?.key || 'overview']
   return <div className="app-shell">
     <aside className={`sidebar ${open ? 'sidebar-open' : ''}`}>
       <div className="brand"><span className="brand-mark"><Factory size={20} /></span><span>Farm<span>Fleet</span></span><button className="mobile-close" onClick={() => setOpen(false)} aria-label="Close menu"><X size={20} /></button></div>

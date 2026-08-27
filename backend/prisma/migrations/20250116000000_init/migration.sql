@@ -1,6 +1,7 @@
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'CHC_MANAGER', 'OPERATOR', 'FARMER');
 CREATE TYPE "MachineStatus" AS ENUM ('ACTIVE', 'MAINTENANCE', 'BROKEN');
 CREATE TYPE "BookingStatus" AS ENUM ('PENDING', 'APPROVED', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED');
+CREATE TYPE "FarmerRequestStatus" AS ENUM ('PENDING', 'APPROVED', 'ASSIGNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'REJECTED');
 CREATE TYPE "VoiceStatus" AS ENUM ('PROCESSING', 'CONFIRMED', 'REJECTED');
 CREATE TYPE "ProposalStatus" AS ENUM ('PENDING', 'ACCEPTED', 'REJECTED');
 CREATE TYPE "ProposalReason" AS ENUM ('BREAKDOWN', 'DELAY', 'CANCELLATION', 'URGENT_JOB');
@@ -82,6 +83,8 @@ ALTER TABLE "Booking" ADD CONSTRAINT "Booking_machineId_fkey" FOREIGN KEY ("mach
 ALTER TABLE "Booking" ADD CONSTRAINT "Booking_operatorId_fkey" FOREIGN KEY ("operatorId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 ALTER TABLE "VoiceRecording" ADD CONSTRAINT "VoiceRecording_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 ALTER TABLE "User" ADD COLUMN "isActive" BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE "User" ADD COLUMN "village" TEXT;
+ALTER TABLE "User" ADD COLUMN "address" TEXT;
 
 CREATE TABLE "FarmerRequest" (
   "id" TEXT NOT NULL,
@@ -89,8 +92,11 @@ CREATE TABLE "FarmerRequest" (
   "requestedMachineType" TEXT NOT NULL,
   "areaInAcres" DOUBLE PRECISION NOT NULL,
   "preferredDate" TIMESTAMP(3) NOT NULL,
+  "preferredTimeWindow" TEXT,
   "location" JSONB NOT NULL,
-  "status" "BookingStatus" NOT NULL DEFAULT 'PENDING',
+  "status" "FarmerRequestStatus" NOT NULL DEFAULT 'PENDING',
+  "cropType" TEXT,
+  "specialInstructions" TEXT,
   "bookingId" TEXT,
   "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT "FarmerRequest_pkey" PRIMARY KEY ("id")
@@ -115,3 +121,20 @@ ALTER TABLE "FarmerRequest" ADD CONSTRAINT "FarmerRequest_farmerId_fkey" FOREIGN
 ALTER TABLE "FarmerRequest" ADD CONSTRAINT "FarmerRequest_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 ALTER TABLE "JobDurationTrainingSample" ADD CONSTRAINT "JobDurationTrainingSample_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 ALTER TABLE "JobDurationTrainingSample" ADD CONSTRAINT "JobDurationTrainingSample_operatorId_fkey" FOREIGN KEY ("operatorId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+CREATE TYPE "FarmerNotificationType" AS ENUM ('REQUEST_APPROVED', 'JOB_ASSIGNED', 'JOB_SCHEDULED', 'JOB_RESCHEDULED', 'JOB_COMPLETED', 'JOB_CANCELLED');
+CREATE TABLE "FarmerNotification" (
+  "id" TEXT NOT NULL,
+  "farmerId" TEXT NOT NULL,
+  "type" "FarmerNotificationType" NOT NULL,
+  "title" TEXT NOT NULL,
+  "message" TEXT NOT NULL,
+  "relatedRequestId" TEXT,
+  "relatedBookingId" TEXT,
+  "read" BOOLEAN NOT NULL DEFAULT false,
+  "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "FarmerNotification_pkey" PRIMARY KEY ("id")
+);
+ALTER TABLE "FarmerNotification" ADD CONSTRAINT "FarmerNotification_farmerId_fkey" FOREIGN KEY ("farmerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "FarmerNotification" ADD CONSTRAINT "FarmerNotification_relatedRequestId_fkey" FOREIGN KEY ("relatedRequestId") REFERENCES "FarmerRequest"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "FarmerNotification" ADD CONSTRAINT "FarmerNotification_relatedBookingId_fkey" FOREIGN KEY ("relatedBookingId") REFERENCES "Booking"("id") ON DELETE SET NULL ON UPDATE CASCADE;

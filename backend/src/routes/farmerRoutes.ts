@@ -1,5 +1,5 @@
 import { Router } from 'express'
 import { requireAuth, requireRole } from '../middleware/auth.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
-import { getRequests, postRequest } from '../controllers/farmerController.js'
-const router = Router(); router.use(requireAuth, requireRole('FARMER')); router.get('/requests', asyncHandler(getRequests)); router.post('/requests', asyncHandler(postRequest)); export default router
+import { cancelBooking, getBooking, getBookings, getNotifications, getProfile, getRequest, getRequests, markNotificationRead, patchProfile, postRequest } from '../controllers/farmerController.js'
+const router = Router(); router.use(requireAuth, requireRole('FARMER')); router.get('/profile', asyncHandler(getProfile)); router.patch('/profile', asyncHandler(patchProfile)); router.get('/requests', asyncHandler(getRequests)); router.post('/requests', asyncHandler(postRequest)); router.get('/requests/:id', asyncHandler(getRequest)); router.get('/bookings', asyncHandler(getBookings)); router.get('/bookings/:id', asyncHandler(getBooking)); router.post('/bookings/:id/cancel', asyncHandler(cancelBooking)); router.get('/notifications', asyncHandler(getNotifications)); router.patch('/notifications/:id/read', asyncHandler(markNotificationRead)); export default router

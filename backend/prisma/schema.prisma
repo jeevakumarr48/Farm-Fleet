@@ -29,6 +29,16 @@ enum BookingStatus {
   CANCELLED
 }
 
+enum FarmerRequestStatus {
+  PENDING
+  APPROVED
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  REJECTED
+}
+
 enum VoiceStatus {
   PROCESSING
   CONFIRMED
@@ -48,6 +58,15 @@ enum ProposalReason {
   URGENT_JOB
 }
 
+enum FarmerNotificationType {
+  REQUEST_APPROVED
+  JOB_ASSIGNED
+  JOB_SCHEDULED
+  JOB_RESCHEDULED
+  JOB_COMPLETED
+  JOB_CANCELLED
+}
+
 model User {
   id                    String    @id @default(cuid())
   name                  String
@@ -57,11 +76,14 @@ model User {
   passwordHash          String
   chclId                String?
   isActive              Boolean   @default(true)
+  village               String?
+  address               String?
   machines              Machine[] @relation("MachineOperator")
   bookingsAsFarmer      Booking[] @relation("BookingFarmer")
   bookingsAsOperator    Booking[] @relation("BookingOperator")
   farmerRequests        FarmerRequest[]
   durationSamples       JobDurationTrainingSample[]
+  notifications         FarmerNotification[]
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 }
@@ -100,6 +122,7 @@ model Booking {
   voiceRecordings          VoiceRecording[]
   farmerRequest             FarmerRequest?
   durationSamples           JobDurationTrainingSample[]
+  notifications             FarmerNotification[] @relation("BookingNotifications")
   createdAt                DateTime        @default(now())
   updatedAt                DateTime        @updatedAt
 
@@ -126,12 +149,17 @@ model FarmerRequest {
   requestedMachineType String
   areaInAcres          Float
   preferredDate        DateTime
+  preferredTimeWindow  String?
   location             Json
-  status               BookingStatus @default(PENDING)
+  status               FarmerRequestStatus @default(PENDING)
+  cropType             String?
+  specialInstructions  String?
   farmer               User          @relation(fields: [farmerId], references: [id])
   bookingId            String?       @unique
   booking              Booking?      @relation(fields: [bookingId], references: [id])
+  notifications        FarmerNotification[] @relation("RequestNotifications")
   createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
 }
 
 model JobDurationTrainingSample {
@@ -147,6 +175,21 @@ model JobDurationTrainingSample {
   booking               Booking? @relation(fields: [bookingId], references: [id])
   operator              User?    @relation(fields: [operatorId], references: [id])
   createdAt             DateTime @default(now())
+}
+
+model FarmerNotification {
+  id                String                 @id @default(cuid())
+  farmerId          String
+  type              FarmerNotificationType
+  title             String
+  message           String
+  relatedRequestId  String?
+  relatedBookingId  String?
+  read              Boolean                @default(false)
+  farmer            User                   @relation(fields: [farmerId], references: [id])
+  relatedRequest    FarmerRequest?         @relation("RequestNotifications", fields: [relatedRequestId], references: [id])
+  relatedBooking    Booking?               @relation("BookingNotifications", fields: [relatedBookingId], references: [id])
+  createdAt         DateTime               @default(now())
 }
 
 model ScheduleChangeProposal {
