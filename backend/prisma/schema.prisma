@@ -84,6 +84,7 @@ model User {
   farmerRequests        FarmerRequest[]
   durationSamples       JobDurationTrainingSample[]
   notifications         FarmerNotification[]
+  operatorLocations     OperatorLocation[]
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 }
@@ -123,6 +124,7 @@ model Booking {
   farmerRequest             FarmerRequest?
   durationSamples           JobDurationTrainingSample[]
   notifications             FarmerNotification[] @relation("BookingNotifications")
+  operatorLocations         OperatorLocation[]
   createdAt                DateTime        @default(now())
   updatedAt                DateTime        @updatedAt
 
@@ -190,6 +192,19 @@ model FarmerNotification {
   relatedRequest    FarmerRequest?         @relation("RequestNotifications", fields: [relatedRequestId], references: [id])
   relatedBooking    Booking?               @relation("BookingNotifications", fields: [relatedBookingId], references: [id])
   createdAt         DateTime               @default(now())
+}
+
+model OperatorLocation {
+  id         String   @id @default(cuid())
+  bookingId  String
+  operatorId String
+  lat        Float
+  lng        Float
+  speed      Float?
+  timestamp  DateTime @default(now())
+  booking    Booking  @relation(fields: [bookingId], references: [id])
+  operator   User     @relation(fields: [operatorId], references: [id])
+  @@index([bookingId, timestamp])
 }
 
 model ScheduleChangeProposal {

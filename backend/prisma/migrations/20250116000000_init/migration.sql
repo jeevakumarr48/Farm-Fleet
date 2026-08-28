@@ -138,3 +138,17 @@ CREATE TABLE "FarmerNotification" (
 ALTER TABLE "FarmerNotification" ADD CONSTRAINT "FarmerNotification_farmerId_fkey" FOREIGN KEY ("farmerId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 ALTER TABLE "FarmerNotification" ADD CONSTRAINT "FarmerNotification_relatedRequestId_fkey" FOREIGN KEY ("relatedRequestId") REFERENCES "FarmerRequest"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 ALTER TABLE "FarmerNotification" ADD CONSTRAINT "FarmerNotification_relatedBookingId_fkey" FOREIGN KEY ("relatedBookingId") REFERENCES "Booking"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+CREATE TABLE "OperatorLocation" (
+  "id" TEXT NOT NULL,
+  "bookingId" TEXT NOT NULL,
+  "operatorId" TEXT NOT NULL,
+  "lat" DOUBLE PRECISION NOT NULL,
+  "lng" DOUBLE PRECISION NOT NULL,
+  "speed" DOUBLE PRECISION,
+  "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT "OperatorLocation_pkey" PRIMARY KEY ("id")
+);
+CREATE INDEX "OperatorLocation_bookingId_timestamp_idx" ON "OperatorLocation"("bookingId", "timestamp");
+ALTER TABLE "OperatorLocation" ADD CONSTRAINT "OperatorLocation_bookingId_fkey" FOREIGN KEY ("bookingId") REFERENCES "Booking"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "OperatorLocation" ADD CONSTRAINT "OperatorLocation_operatorId_fkey" FOREIGN KEY ("operatorId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -1,5 +1,5 @@
 import { demoBookings, demoMachines, demoNotifications, demoProposal, demoRequests, demoTasks, demoUser, demoUsers } from '../data'
-import type { Booking, FarmerBooking, FarmerNotification, FarmerProfile, FarmerRequest, Machine, Recommendation, ScheduleProposal, User } from '../types'
+import type { Booking, FarmerBooking, FarmerNotification, FarmerProfile, FarmerRequest, Machine, OperatorLocation, Recommendation, ScheduleProposal, User } from '../types'
 
 const API_URL = import.meta.env.VITE_API_URL || '/api'
 
@@ -34,6 +34,9 @@ export async function getFarmerBooking(id: string): Promise<FarmerBooking> { try
 export async function cancelFarmerBooking(id: string): Promise<void> { try { await request(`/farmer/bookings/${id}/cancel`, { method: 'POST' }) } catch { /* prototype mode */ } }
 export async function getFarmerNotifications(unreadOnly = false): Promise<FarmerNotification[]> { try { return await request(`/farmer/notifications${unreadOnly ? '?unreadOnly=true' : ''}`) } catch { return demoNotifications.filter((item) => !unreadOnly || !item.read) } }
 export async function markFarmerNotificationRead(id: string): Promise<void> { try { await request(`/farmer/notifications/${id}/read`, { method: 'PATCH' }) } catch { /* demo mode */ } }
+export async function getChcTracking(bookingId: string): Promise<{ booking: Booking; operatorLocation: OperatorLocation | null; path: OperatorLocation[] }> { try { return await request(`/chc/tracking/${bookingId}`) } catch { const booking = demoBookings.find((item) => item.id === bookingId) || demoBookings[0]; return { booking, operatorLocation: { bookingId: booking.id, operatorId: 'operator-1', lat: 28.9845, lng: 77.7064, timestamp: new Date().toISOString() }, path: [] } } }
+export async function getOperatorActiveJob(): Promise<Booking | null> { try { return await request('/operator/active-job') } catch { return demoTasks.find((task) => task.status === 'IN_PROGRESS') || null } }
+export async function sendOperatorLocation(payload: { bookingId: string; lat: number; lng: number; speed?: number; timestamp?: string }): Promise<OperatorLocation> { try { return await request('/operator/location', { method: 'POST', body: JSON.stringify(payload) }) } catch { return { ...payload, id: `loc-${Date.now()}`, operatorId: 'operator-1', timestamp: payload.timestamp || new Date().toISOString() } } }
 export async function getOperatorTasks(): Promise<Booking[]> { try { return await request('/operator/tasks') } catch { return demoTasks } }
 export async function updateOperatorTask(id: string, payload: Partial<Booking>): Promise<Booking> { try { return await request(`/operator/tasks/${id}`, { method: 'PATCH', body: JSON.stringify(payload) }) } catch { return { ...demoTasks.find((task) => task.id === id), ...payload } as Booking } }
 export async function processVoice(file: File, transcript = '', sourceLanguage = 'en-IN'): Promise<{ voiceRecordingId: string; extractedData: Record<string, unknown>; transcript?: string }> {

@@ -9,6 +9,8 @@ import './styles.css'
 import './language.css'
 import './chat.css'
 import './farmer.css'
+import './tracking.css'
+import './maps.css'
 
 const queryClient = new QueryClient({ defaultOptions: { queries: { staleTime: 30_000, refetchOnWindowFocus: false } } })
 ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><QueryClientProvider client={queryClient}><LanguageProvider><BrowserRouter><AuthProvider><App /></AuthProvider></BrowserRouter></LanguageProvider></QueryClientProvider></React.StrictMode>)

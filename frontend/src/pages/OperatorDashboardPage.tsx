@@ -1,0 +1,8 @@
+import { CalendarDays, ChevronRight, MapPin, Navigation, Tractor } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
+import { getOperatorTasks } from '../services/api'
+import { demoTasks } from '../data'
+import { Panel } from '../components/Ui'
+import { StatusBadge } from '../components/StatusBadge'
+export function OperatorDashboardPage() { const { data = demoTasks } = useQuery({ queryKey: ['operator-tasks'], queryFn: getOperatorTasks }); return <div className="dashboard operator-page"><div className="page-intro"><div><span className="eyebrow">FIELD RUN / TODAY</span><h1>Your day in the field</h1><p>Two jobs assigned to you. Keep your CHC updated.</p></div><Link to="/operator/tracking" className="button button-secondary"><Navigation size={16} />Live tracking</Link></div><div className="operator-summary"><div><strong>{data.filter((task) => task.status !== 'COMPLETED').length}</strong><span>Jobs remaining</span></div><div><strong>{data.filter((task) => task.status === 'COMPLETED').length}</strong><span>Completed today</span></div><div><strong>12.8 km</strong><span>Route distance</span></div></div><Panel title="Assigned jobs"><div className="operator-job-list">{data.map((task) => <Link to={`/operator/jobs/${task.id}`} className="operator-job-row" key={task.id}><span className="operator-job-icon"><Tractor size={19} /></span><div><strong>{task.farmerName}</strong><span><MapPin size={13} />{task.location.village} · {task.machineType} · {task.areaInAcres} acres</span><small><CalendarDays size={13} />{task.scheduledStart.slice(11, 16)}–{task.scheduledEnd.slice(11, 16)}</small></div><StatusBadge status={task.status} /><ChevronRight size={17} /></Link>)}</div></Panel></div> }

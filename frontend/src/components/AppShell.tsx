@@ -1,4 +1,4 @@
-import { Bell, CalendarDays, ChevronDown, ClipboardList, Factory, HelpCircle, LayoutDashboard, LogOut, Menu, Settings, Tractor, Users, X } from 'lucide-react'
+import { Bell, CalendarDays, ChevronDown, ClipboardList, Factory, HelpCircle, LayoutDashboard, LogOut, Menu, Navigation, Settings, Tractor, Users, X } from 'lucide-react'
 import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useState } from 'react'
 import { useAuth } from '../contexts/AuthContext'
@@ -8,16 +8,17 @@ import type { NavKey } from '../i18n'
 import { ChatAssistant } from './ChatAssistant'
 
 const links: { to: string; key: NavKey; icon: typeof LayoutDashboard; roles: Role[] }[] = [
-  { to: '/', key: 'overview', icon: LayoutDashboard, roles: ['ADMIN', 'CHC_MANAGER', 'OPERATOR', 'FARMER'] },
-  { to: '/bookings', key: 'bookings', icon: ClipboardList, roles: ['ADMIN', 'CHC_MANAGER'] },
-  { to: '/schedule', key: 'schedule', icon: CalendarDays, roles: ['ADMIN', 'CHC_MANAGER'] },
+  { to: '/chc/dashboard', key: 'overview', icon: LayoutDashboard, roles: ['ADMIN', 'CHC_MANAGER'] },
+  { to: '/chc/bookings', key: 'bookings', icon: ClipboardList, roles: ['ADMIN', 'CHC_MANAGER'] },
+  { to: '/chc/schedule', key: 'schedule', icon: CalendarDays, roles: ['ADMIN', 'CHC_MANAGER'] },
+  { to: '/chc/tracking', key: 'tracking', icon: Navigation, roles: ['ADMIN', 'CHC_MANAGER'] },
   { to: '/machines', key: 'machines', icon: Tractor, roles: ['ADMIN', 'CHC_MANAGER'] },
   { to: '/farmer/dashboard', key: 'overview', icon: LayoutDashboard, roles: ['FARMER'] },
   { to: '/farmer/requests', key: 'requests', icon: ClipboardList, roles: ['FARMER'] },
   { to: '/farmer/bookings', key: 'bookings', icon: CalendarDays, roles: ['FARMER'] },
   { to: '/farmer/profile', key: 'profile', icon: Settings, roles: ['FARMER'] },
   { to: '/farmer/help', key: 'help', icon: HelpCircle, roles: ['FARMER'] },
-  { to: '/tasks', key: 'tasks', icon: Tractor, roles: ['OPERATOR'] },
+  { to: '/operator/dashboard', key: 'tasks', icon: Tractor, roles: ['OPERATOR'] },
   { to: '/users', key: 'people', icon: Users, roles: ['ADMIN', 'CHC_MANAGER'] },
   { to: '/settings', key: 'profile', icon: Settings, roles: ['ADMIN', 'CHC_MANAGER', 'OPERATOR'] },
 ]

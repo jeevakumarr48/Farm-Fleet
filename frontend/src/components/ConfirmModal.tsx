@@ -1,0 +1,2 @@
+import { Button } from './Ui'
+export function ConfirmModal({ title, message, onConfirm, onCancel }: { title: string; message: string; onConfirm: () => void; onCancel: () => void }) { return <div className="overlay"><section className="confirm-modal"><h2>{title}</h2><p>{message}</p><div className="form-actions"><Button variant="ghost" onClick={onCancel}>Cancel</Button><Button onClick={onConfirm}>Confirm</Button></div></section></div> }

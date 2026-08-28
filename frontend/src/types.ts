@@ -16,4 +16,5 @@ export interface FarmerRequest { id: string; machineType: string; areaInAcres: n
 export interface FarmerProfile extends User { village?: string; address?: string; createdAt: string }
 export interface FarmerBooking { id: string; machineType: string; machineName: string; scheduledStart: string; scheduledEnd: string; status: BookingStatus; areaInAcres: number; location: Location; operatorName?: string; operator?: { name: string; phone: string } | null; actualStart?: string; actualEnd?: string; specialInstructions?: string }
 export interface FarmerNotification { id: string; type: string; title: string; message: string; relatedRequestId?: string; relatedBookingId?: string; read: boolean; createdAt: string }
+export interface OperatorLocation { id?: string; bookingId: string; operatorId: string; lat: number; lng: number; speed?: number; timestamp: string }
 export interface OperatorTask extends Booking { distanceKm?: number }
