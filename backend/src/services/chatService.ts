@@ -1,5 +1,6 @@
 import type { Role } from '@prisma/client'
 import { config } from '../config.js'
+import { bookingStateMachine } from './chat/bookingStateMachine.js'
 
 export interface ChatContext {
   machineType?: string
@@ -38,6 +39,7 @@ function approximateAnswer(message: string) { const lower = message.toLowerCase(
 
 export async function respondToChat(message: string, context: ChatContext, role: Role) {
   const lower = message.toLowerCase(); const next = extractContext(message, context); const wantsPrice = /price|cost|rate|quote|कितना|कीमत/i.test(lower); const wantsNegotiate = /negotiate|lower|discount|कम|सस्ता|कम कर/i.test(lower); const wantsLocation = /location|where|map|landmark|गांव|गाँव|स्थान/i.test(lower); const wantsHelp = /help|what can|hello|hi|नमस्ते|வணக்கம்/i.test(lower)
+  const stateReply = bookingStateMachine.transition(message, context, role); if (stateReply.handled) return stateReply
   if (wantsNegotiate && (next.quote || context.quote)) { const original = context.quote || quoteFor(next); const revised = Math.round(original * .92); return { context: { ...next, quote: revised, negotiated: true }, message: `I can offer a 8% route discount for this job. The revised estimate is ₹${revised.toLocaleString('en-IN')} instead of ₹${original.toLocaleString('en-IN')}. This is a prototype quote; the CHC can confirm the final rate.`, quickReplies: ['Accept revised quote', 'Keep original quote'] }
   }
   if (wantsLocation && !next.village) return { context: next, message: 'Tell me the village first. You can type something like “Bairiya village, Plot 12B, near the water tank”.', quickReplies: ['Bairiya village'] }
